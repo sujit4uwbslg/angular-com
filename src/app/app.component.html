@@ -1,2 +1,75 @@
-<app-child1></app-child1>
-<app-child2></app-child2>
+<div class="page">
+  <h1>{{ title }}</h1>
+
+  <section *ngIf="!isLoggedIn" class="card">
+    <h2>Login</h2>
+    <p>Sign in to run the agentic AI literature survey workflow.</p>
+
+    <label>
+      Email
+      <input [(ngModel)]="loginModel.email" type="email" placeholder="researcher@university.edu" />
+    </label>
+
+    <label>
+      Password
+      <input [(ngModel)]="loginModel.password" type="password" placeholder="••••••••" />
+    </label>
+
+    <button (click)="login()" [disabled]="!loginModel.email || !loginModel.password">Login</button>
+  </section>
+
+  <section *ngIf="isLoggedIn" class="card">
+    <h2>Choose what you want to do</h2>
+
+    <label>
+      Workflow mode
+      <select [(ngModel)]="selectedGoal">
+        <option value="full-survey">Full literature survey + gap analysis</option>
+        <option value="metadata-only">Extract title + abstract only</option>
+        <option value="connections-only">Find connected papers only</option>
+      </select>
+    </label>
+
+    <label>
+      Upload research papers (PDF, bulk)
+      <input type="file" accept=".pdf" multiple (change)="onPdfUpload($event)" />
+    </label>
+
+    <p *ngIf="uploadedPapers.length">{{ uploadedPapers.length }} PDF file(s) selected.</p>
+
+    <button (click)="runAgenticWorkflow()" [disabled]="!uploadedPapers.length">Run LangGraph Agents</button>
+  </section>
+
+  <section *ngIf="extractedMetadata.length" class="card">
+    <h3>1) Extracted Titles and Abstracts</h3>
+    <div *ngFor="let paper of extractedMetadata" class="result-block">
+      <strong>{{ paper.fileName }}</strong>
+      <p><b>Title:</b> {{ paper.title }}</p>
+      <p><b>Abstract:</b> {{ paper.abstract }}</p>
+    </div>
+  </section>
+
+  <section *ngIf="connectedPapers.length && selectedGoal !== 'metadata-only'" class="card">
+    <h3>2) Connected Papers</h3>
+    <ul>
+      <li *ngFor="let paper of connectedPapers">
+        {{ paper.title }} — {{ paper.relation }} ({{ paper.confidence }}% match)
+      </li>
+    </ul>
+  </section>
+
+  <section *ngIf="surveyOutput && selectedGoal === 'full-survey'" class="card">
+    <h3>3) Consistent Literature Survey + Gap Hints</h3>
+    <p>{{ surveyOutput.literatureSurvey }}</p>
+
+    <h4>Possible Research Gaps</h4>
+    <ul>
+      <li *ngFor="let gap of surveyOutput.researchGaps">{{ gap }}</li>
+    </ul>
+
+    <h4>Possible New Research Directions</h4>
+    <ul>
+      <li *ngFor="let direction of surveyOutput.possibleDirections">{{ direction }}</li>
+    </ul>
+  </section>
+</div>
